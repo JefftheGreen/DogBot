@@ -4,6 +4,7 @@
 try:
     import RPIO
     import RPIO.PWM
+    from RPIO.PWM import _PWM
 except (ImportError, SystemError):
     print("Couldn't import RPIO")
 import warnings
@@ -91,7 +92,8 @@ class Servo(ABCServo):
         Sets the servo angle and updates it.
 
         Arguments:
-            angle (numeric) --
+            angle (numeric) -- the angle to set the servo to. Must be between
+                0 and self.range.
         '''
         if not 0 < angle < self.range:
             raise ValueError('angle must be between 0 and range')
@@ -99,14 +101,27 @@ class Servo(ABCServo):
         self.update()
 
     def increment(self, change):
+        '''
+        Moves the servo by a set amount.
+
+        Arguments:
+            change (numeric) -- the amount to adjust the servo.
+        '''
         self.set(self.angle + change)
 
     @property
     def pulse(self):
+        '''
+        The pulse width for the servo.
+        '''
         position_ratio = self.angle / self.range
         position_ratio *= -1 if self.reverse else 1
         pulse_range = max(self.pulse) - min(self.pulse)
-        return pulse_range * position_ratio + min(self.pulse)
+        pulse_incr = _PWM.get_pulse_incr_us()
+        pulse = pulse_range * position_ratio + min(self.pulse)
+        pulse = pulse // pulse_incr
+        pulse *= pulse_incr
+        return pulse
 
 
 class ContinousServo(ABCServo):
