@@ -1,0 +1,8 @@
+[RPIO]
+reserved_channels=0,2
+
+[temp_init]
+used_pins=0:yadayada,
+
+[py_behavior]
+echo=True
